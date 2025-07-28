@@ -1,0 +1,14 @@
+# Ignore virtual enviroment
+venv/
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.log
+*.tmp
+
+# macOS system files
+.DS_Store
+
+#Data file for skyfield
+de421.bsp
