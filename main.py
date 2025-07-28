@@ -23,7 +23,7 @@ def main():
     mercury_pos = sun.at(t).observe(mercury).position.km
 
     fig, ax = plt.subplots(figsize=(8, 8))
-    ax.set_title("Earth Orbit Around Sun (Animated)")
+    ax.set_title("Inner solar system (Animated)")
     ax.set_xlabel('x (km)')
     ax.set_ylabel('y (km)')
     ax.set_aspect('equal')
@@ -34,34 +34,44 @@ def main():
     ax.set_xlim(-lim, lim)
     ax.set_ylim(-lim, lim)
 
+    # Define planet info: name, color, position array
+    planets = [
+        {"name": "Earth",   "color": "b", "pos": earth_pos},
+        {"name": "Venus",   "color": "y", "pos": venus_pos},
+        {"name": "Mercury", "color": "g", "pos": mercury_pos},
+    ]
+
+    # Store plot elements for each planet
+    planet_dots = {}
+    planet_trails = {}
+    planet_labels = {}
+
+    for planet in planets:
+        dot, = ax.plot([], [], f'{planet["color"]}o', label=planet["name"])
+        trail, = ax.plot([], [], f'{planet["color"]}-', alpha=0.5)
+        label = ax.text(0, 0, planet["name"], color=planet["color"], fontsize=10, ha='left', va='bottom')
+        planet_dots[planet["name"]] = dot
+        planet_trails[planet["name"]] = trail
+        planet_labels[planet["name"]] = label
 
     sun_dot, = ax.plot(0, 0, 'ro', label='Sun')
-    earth_dot, = ax.plot([], [], 'bo', label='Earth')
-    earthTrail, = ax.plot([], [], 'b-', alpha=0.5)
-
-    venus_dot, = ax.plot([], [], 'yo', label='Venus')
-    venusTrail, = ax.plot([], [], 'y-', alpha=0.5)
-
-    mercury_dot, = ax.plot([], [], 'go', label='Mercury')
-    mercuryTrail, = ax.plot([], [], 'g-', alpha=0.5)
-
     date_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, fontsize=12, verticalalignment='top')
 
     def update(frame):
-        earth_dot.set_data([earth_pos[0][frame]], [earth_pos[1][frame]])
-        earthTrail.set_data(earth_pos[0][:frame+1], earth_pos[1][:frame+1])
-
-        venus_dot.set_data([venus_pos[0][frame]], [venus_pos[1][frame]])
-        venusTrail.set_data(venus_pos[0][:frame+1], venus_pos[1][:frame+1])
-
-        mercury_dot.set_data([mercury_pos[0][frame]], [mercury_pos[1][frame]])
-        mercuryTrail.set_data(mercury_pos[0][:frame+1], mercury_pos[1][:frame+1])
-
+        for planet in planets:
+            name = planet["name"]
+            pos = planet["pos"]
+            planet_dots[name].set_data([pos[0][frame]], [pos[1][frame]])
+            planet_trails[name].set_data(pos[0][:frame+1], pos[1][:frame+1])
+            planet_labels[name].set_position((pos[0][frame], pos[1][frame]))
         current_time = t[frame].utc_strftime('%Y-%m-%d')
         date_text.set_text(f"Date: {current_time}")
-        return earth_dot, earthTrail, date_text
-
-
+        return (
+            list(planet_dots.values())
+            + list(planet_trails.values())
+            + list(planet_labels.values())
+            + [date_text]
+        )
 
     ani = FuncAnimation(fig, update, frames=len(earth_pos[0]), interval=50, blit=False)
 
